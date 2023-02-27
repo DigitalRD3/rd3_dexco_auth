@@ -11,31 +11,27 @@ from fastapi import FastAPI
 import requests
 import uvicorn
 
-#"RD3@daltontofoli1gmail.onmicrosoft.com"
-#"RD#D1g1t4l"
-
 api = FastAPI()
 
 
 app = msal.ClientApplication(
-    os.getenv("CLIENT_ID"), authority=os.getenv("AUTHORITY"),
+    client_id=os.getenv("CLIENT_ID"), authority=os.getenv("AUTHORITY"),
     client_credential=os.getenv("CLIENT_SECRET")
 )
 
 @api.post("/auth/")
 async def auth_user(user : model.Logon):
-    #print(user.username)
-    #print(user.pw)
 
     result = None
 
     accounts = app.get_accounts(user.username)
 
-    if accounts:
-        logging.info("Account(s) exists in cache, probably with token too. Lets try.")
-        result = app.acquire_token_silent(app_config.SCOPE, account=accounts[0])
+    #if accounts:
+    #    logging.info("Account(s) exists in cache, probably with token too. Lets try.")
+    #    result = app.acquire_token_silent(app_config.SCOPE, account=accounts[0])
 
     if not result:
+        print("LOGIN WITH USERNAME AND PASSWORD")
         logging.info("No suitable token exists in cache, getting a new one from AAD.")
         result = app.acquire_token_by_username_password(
             user.username, user.pw, app_config.SCOPE
