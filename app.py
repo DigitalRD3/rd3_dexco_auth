@@ -55,3 +55,6 @@ async def auth_user(user : model.Logon):
     if 65001 in result.get("error_codes", []):
         HTTPException(status_code=401, detail="User Not Authorized")
         print("Visit this to consent: ", app.get_authorization_request_url(app_config.SCOPE))
+
+if __name__ == "__main__":
+    uvicorn.run(api, host="127.0.0.1", port=8000)
