@@ -1,60 +1,48 @@
 import app_config
-import model
-
-import sys
-import logging
-import json
 import os
 
+from flask import Flask, request
 import msal
-from fastapi import FastAPI, HTTPException
-import requests
-import uvicorn
 
-api = FastAPI()
+app = Flask(__name__)
 
+# Define the MSAL client application parameters
+client_id = os.getenv('CLIENT_ID')
+authority = os.getenv('AUTHORITY')
+client_secret = os.getenv('CLIENT_SECRET')
+scope = app_config.SCOPE
 
-app = msal.ClientApplication(
-    client_id=os.getenv("CLIENT_ID"), authority=os.getenv("AUTHORITY"),
-    client_credential=os.getenv("CLIENT_SECRET")
+# Create a new MSAL application instance with the client_id and authority parameters
+app_client = msal.ConfidentialClientApplication(
+    client_id=client_id,
+    authority=authority,
+    client_credential=client_secret
 )
 
-@api.post("/auth/")
-async def auth_user(user : model.Logon):
-
-    print(user.username)
-    print(user.pw)
-
-    result = None
-    print("CREATING APP")
-    accounts = app.get_accounts(user.username)
-
-    if accounts:
-        print("GET TOKEN FROM CACHE")
-        logging.info("Account(s) exists in cache, probably with token too. Lets try.")
-        result = app.acquire_token_silent(app_config.SCOPE, account=accounts[0])
-
-    if not result:
-        print("LOGIN WITH USERNAME AND PASSWORD")
-        logging.info("No suitable token exists in cache, getting a new one from AAD.")
-        result = app.acquire_token_by_username_password(
-            user.username, user.pw, app_config.SCOPE
-        )
-
-    if "access_token" in result:
-        print("REQUEST USER DATA")
-        graph_data = requests.get(app_config.ENDPOINT, headers={'Authorization': 'Bearer ' + result['access_token']},).json()
-        print("Graph API call result: %s" % json.dumps(graph_data, indent=2))
-        return graph_data
+# Define the route for the authentication endpoint
+@app.route('/authenticate', methods=['POST'])
+def authenticate():
+    # Get the username and password from the POST request JSON body
+    data = request.get_json()
+    username = data['username']
+    password = data['pw']
+    
+    # Authenticate the user with MSAL and retrieve an access token
+    result = app_client.acquire_token_by_username_password(
+        username=username,
+        password=password,
+        scopes=scope
+    )
+    
+    # Return the access token in the response
+    if 'access_token' in result:
+        access_token = result['access_token']
+        print('Success')
+        print(result[access_token])
+        return {'access_token': access_token}
     else:
-        print("SOMETHING WENT WRONG")
-        HTTPException(status_code=401, detail="Authentication Failed")
-        print(result.get("error"))
-        print(result.get("error_description"))
-        print(result.get("correlation_id"))
-    if 65001 in result.get("error_codes", []):
-        HTTPException(status_code=401, detail="User Not Authorized")
-        print("Visit this to consent: ", app.get_authorization_request_url(app_config.SCOPE))
+        print('Error')
+        return {'error': result.get('error')}
 
-if __name__ == "__main__":
-    uvicorn.run(api, host="127.0.0.1", port=8000)
+if __name__ == '__main__':
+    app.run(debug=True)
