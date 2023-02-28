@@ -3,6 +3,7 @@ import os
 
 from flask import Flask, request
 import msal
+import uvicorn
 
 app = Flask(__name__)
 
