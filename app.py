@@ -14,7 +14,7 @@ import uvicorn
 api = FastAPI()
 
 
-app = msal.ClientApplication(
+app = msal.ConfidentialClientApplication(
     client_id=os.getenv("CLIENT_ID"), authority=os.getenv("AUTHORITY"),
     client_credential=os.getenv("CLIENT_SECRET")
 )
