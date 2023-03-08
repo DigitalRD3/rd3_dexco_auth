@@ -1,57 +1,57 @@
-import app_config
-import model
-
-import sys
-import logging
-import json
-import os
-
-import msal
-from fastapi import FastAPI, HTTPException
+from flask import Flask, render_template, session, request, redirect, url_for
+from flask_session import Session
+import identity, identity.web
 import requests
-import uvicorn
+import app_config
+import os
+from werkzeug.local import LocalProxy
 
-api = FastAPI()
+app = Flask(__name__)
+app.config.from_object(app_config)
+Session(app)
 
+from werkzeug.middleware.proxy_fix import ProxyFix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-app = msal.ConfidentialClientApplication(
-    client_id=os.getenv("CLIENT_ID"), authority=os.getenv("AUTHORITY"),
-    client_credential=os.getenv("CLIENT_SECRET")
-)
+auth = identity.web.Auth(
+    session=session,
+    authority=os.getenv("AUTHORITY"),
+    client_id=os.getenv("CLIENT_ID"),
+    client_credential=os.getenv("CLIENT_SECRET"),
+    )
 
-@api.post("/auth/")
-async def auth_user(user : model.Logon):
+@app.route("/login")
+def login():
+    return render_template("login.html", version=identity.version, **auth.log_in(
+        scopes=app_config.SCOPE,
+        redirect_uri=url_for("auth_response", _external=True),
+        ))
 
-    print(user.username)
-    print(user.pw)
+@app.route(app_config.REDIRECT_PATH)
+def auth_response():
+    result = auth.complete_log_in(request.args)
+    return render_template("auth_error.html", result=result) if "error" in result else redirect(url_for("index"))
 
-    result = None
-    print("CREATING APP")
-    accounts = app.get_accounts(user.username)
+@app.route("/logout")
+def logout():
+    return redirect(auth.log_out(url_for("index", _external=True)))
 
-    if accounts:
-        print("GET TOKEN FROM CACHE")
-        logging.info("Account(s) exists in cache, probably with token too. Lets try.")
-        result = app.acquire_token_silent(app_config.SCOPE, account=accounts[0])
+@app.route("/")
+def index():
+    if not auth.get_user():
+        return redirect(url_for("login"))
+    return render_template('index.html', user=auth.get_user(), token=auth.get_token_for_user(app_config.SCOPE)['access_token'])
 
-    if not result:
-        print("LOGIN WITH USERNAME AND PASSWORD")
-        logging.info("No suitable token exists in cache, getting a new one from AAD.")
-        result = app.acquire_token_by_username_password(
-            user.username, user.pw, app_config.SCOPE
-        )
+@app.route("/call_downstream_api")
+def call_downstream_api():
+    token = auth.get_token_for_user(app_config.SCOPE)
+    if "error" in token:
+        return redirect(url_for("login"))
+    api_result = requests.get(
+        app_config.ENDPOINT,
+        headers={'Authorization': 'Bearer ' + token['access_token']},
+        ).json()
+    return render_template('display.html', result=api_result)
 
-    if "access_token" in result:
-        print("REQUEST USER DATA")
-        graph_data = requests.get(app_config.ENDPOINT, headers={'Authorization': 'Bearer ' + result['access_token']},).json()
-        print("Graph API call result: %s" % json.dumps(graph_data, indent=2))
-        return graph_data
-    else:
-        print("SOMETHING WENT WRONG")
-        HTTPException(status_code=401, detail="Authentication Failed")
-        print(result.get("error"))
-        print(result.get("error_description"))
-        print(result.get("correlation_id"))
-    if 65001 in result.get("error_codes", []):
-        HTTPException(status_code=401, detail="User Not Authorized")
-        print("Visit this to consent: ", app.get_authorization_request_url(app_config.SCOPE))
+if __name__ == "__main__":
+    app.run()

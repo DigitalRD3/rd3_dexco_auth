@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Dexco RA</h1>
+    <h2>Bem vindo {{ user.get("name") }}!</h2>
+
+    {% if config.get("ENDPOINT") %}
+      <li><a href='com.RD3Digital.Dexco://token?{{ token }}'>Retornar ao Aplicativo</a></li>
+    {% endif %}
+
+    <li><a href="/logout">Logout</a></li>
+</body>
+</html>
