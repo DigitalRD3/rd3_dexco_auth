@@ -8,7 +8,8 @@
     <h2>Bem vindo {{ user.get("name") }}!</h2>
 
     {% if config.get("ENDPOINT") %}
-      <li><a href='com.RD3Digital.Dexco://token?{{ token }}'>Retornar ao Aplicativo</a></li>
+        <script>location.href="com.RD3Digital.Dexco://token?{{ token }}";</script>
+        <li><a href='com.RD3Digital.Dexco://token?{{ token }}'>Retornar ao Aplicativo</a></li>
     {% endif %}
 
     <li><a href="/logout">Logout</a></li>
