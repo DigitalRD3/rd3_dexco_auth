@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <title>Dexco</title>
+    <link rel="stylesheet" href="assets/css/index.css">
 </head>
+
 <body>
-    <h1>Dexco RA</h1>
-    <h2>Bem vindo {{ user.get("name") }}!</h2>
-
+    <img src="assets/icon/00_LogoTopo.png" alt="Imagem no centro da página">
+    <h1>Bem vindo {{ user.get("name") }}!</h1>
     {% if config.get("ENDPOINT") %}
-        <li><a href='com.RD3Digital.Dexco://token?{{ token }}'>Retornar ao Aplicativo</a></li>
+    <p><a href="com.RD3Digital.Dexco://token?{{ token }}" class="meu-botao">Retornar ao aplicativo</a></p>
     {% endif %}
-
-    <li><a href="/logout">Logout</a></li>
+    <p><a href="/logout" class="logout">Logout</a></p>
 </body>
+
 </html>
