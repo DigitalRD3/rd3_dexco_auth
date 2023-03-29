@@ -1,25 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <title>Dexco</title>
+  <link rel="stylesheet" href="assets/css/login.css">
 </head>
+
 <body>
-    <h1>Dexco RA Login</h1>
+  <div class="cabecalho">
+    <img src="assets/icon/00_LogoTopo.png" alt="Imagem no centro da página">
+    <h1>Dexco RA login</h1>
+  </div>
 
-    {% if user_code %}
-    <ol>
-    <li>To sign in, type <b>{{ user_code }}</b> into
-      <a href='{{ auth_uri }}' target=_blank>{{ auth_uri }}</a>
-      to authenticate.
-    </li>
-    <li>And then <a href="{{ url_for('auth_response') }}">proceed</a>.</li>
-    </ol>
-    {% else %}
-    <li><a href='{{ auth_uri }}'>Sign In</a></li>
-    {% endif %}
-
-    <hr>
-    <footer style="text-align: right">Desenvolvido por RD3 Digital</footer>
+  <p><a href="{{ auth_uri }}" class="meu-botao">Sign In</a></p>
 </body>
-</html>
 
+</html>
