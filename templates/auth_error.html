@@ -1,21 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-
-    {% if config.get("B2C_RESET_PASSWORD_AUTHORITY") and "AADB2C90118" in result.get("error_description") %} <!-- This will be reached when user forgot their password -->
-      <!-- See also https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-reference-policies#linking-user-flows -->
-      <meta http-equiv="refresh" content='0;{{config.get("B2C_RESET_PASSWORD_AUTHORITY")}}?client_id={{config.get("CLIENT_ID")}}'>
-    {% endif %}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  {% if config.get("B2C_RESET_PASSWORD_AUTHORITY") and "AADB2C90118" in result.get("error_description") %}
+  <meta http-equiv="refresh" content='0;{{config.get("B2C_RESET_PASSWORD_AUTHORITY")}}?client_id={{config.get("CLIENT_ID")}}'>
+  {% endif %}
+  <title>Dexco</title>
+  <link rel="stylesheet" href="assets/css/error.css">
 </head>
-<body>
-    <h2>Login Failure</h2>
-    <dl>
-      <dt>{{ result.get("error") }}</dt>
-      <dd>{{ result.get("error_description") }}</dd>
-    </dl>
-    <hr>
-    <a href="{{ url_for('index') }}">Homepage</a>
-</body>
-</html>
 
+<body>
+  <img src="assets/icon/icon erro.png" alt="Imagem no centro da página">
+  <h1 class="titulo">Falha no login</h1>
+  <p>{{ result.get("error") }}</p>
+  <p>{{ result.get("error_description") }}</p>
+  <p><a href="{{ url_for('index') }}" class="meu-botao">Homepage</a></p>
+</body>
+
+</html>
