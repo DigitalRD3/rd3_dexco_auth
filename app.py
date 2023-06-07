@@ -53,5 +53,9 @@ def call_downstream_api():
         ).json()
     return render_template('display.html', result=api_result)
 
+@app.route("/validate")
+def validate():
+    return "Success", 200
+
 if __name__ == "__main__":
     app.run()
